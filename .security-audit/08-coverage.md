@@ -30,3 +30,7 @@ Another `$repo-audit` invocation should resume at deeper systematic hunt/dynamic
 - The shared remote authentication path was checked for correlation cookie generation, marker validation, deletion, and rejection behavior.
 - The OpenID Connect path was checked for missing/invalid state rejection, correlation validation, nonce cookie lookup/deletion, and nonce propagation to protocol validators.
 - Candidate `CAND-003` was rejected because no path was shown to create a principal without those binding checks; dynamic TestServer execution remains blocked by missing `dotnet`.
+
+## 2026-07-23 Kestrel HTTP/1 TE/CL coverage update
+
+Reviewed `Http1MessageBody`, `HttpRequestHeaders`, and existing Kestrel tests for the specific request-smuggling hypothesis where `Transfer-Encoding` and `Content-Length` ambiguity could alter application-visible request boundaries. Source and test evidence support rejection of that concrete hypothesis: Kestrel rejects non-final chunked transfer coding, suppresses conflicting content length when chunked is selected, and rejects differing duplicate content lengths. Dynamic fuzzing and proxy differential tests remain blocked until repository SDK bootstrap succeeds.

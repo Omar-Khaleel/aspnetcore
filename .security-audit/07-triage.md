@@ -22,3 +22,13 @@ No candidate reached `IMPACT_PROVEN` or `REPORTABLE`; therefore no vendor-ready 
 - Breaker: The reviewed source shows the expected state/correlation/nonce order: OAuth unprotects `state` and rejects null properties before `ValidateCorrelationId`; challenge generation calls `GenerateCorrelationId`; the shared remote handler validates the protected correlation value against a matching cookie marker and deletes it; OIDC rejects missing/invalid state before correlation validation and passes nonce into protocol validation.
 - Adjudicator: Reject this concrete hypothesis. The source trace does not show a callback path that creates a ticket without protected state/correlation/nonce binding, and `dotnet` plus a controlled IdP/token lab were unavailable for dynamic tests.
 - Final classification: `REJECTED`.
+
+## CAND-004 adversarial triage — Kestrel HTTP/1 TE/CL parser differential
+
+**Verdict:** `REJECTED` for the reviewed hypothesis.
+
+**Prover evidence:** the attacker controls HTTP/1 request headers; source review found `Http1MessageBody` checks final transfer coding, rejects non-final/non-chunked transfer coding, moves `Content-Length` to `X-Content-Length`, and clears parsed content length before selecting a chunked message body. `HttpRequestHeaders` rejects differing duplicate content lengths. Existing Kestrel tests cover transfer-coding parsing and chunked+content-length header normalization.
+
+**Strongest breaker rejection:** this is a high-value request-smuggling surface, but no parser differential or hidden request was reproduced. The reviewed code appears to enforce the expected invariant for the concrete TE/CL ambiguity. Without a dynamic proxy/Kestrel differential harness, the claim cannot show observable security impact.
+
+**Adjudication:** reject this candidate rather than report it. Preserve it as coverage and resume future Kestrel fuzzing/differential validation when the repository SDK bootstrap is available.
