@@ -11,6 +11,19 @@ When invoked as `$repo-hunt` with no additional text, start immediately. If mapp
 
 Read all `.security-audit/` scope, architecture, threat-model, attack-surface, and coverage artifacts plus source, tests, docs, history, and build metadata.
 
+## ASP.NET Core hunt priorities
+
+For this ASP.NET Core repository, prioritize local, dynamically testable attack surfaces before external-service-dependent leads:
+
+1. Kestrel HTTP/1, HTTP/2, and HTTP/3 parsers and state machines.
+2. Request smuggling and parser differential behavior.
+3. Header parsing, chunked-body parsing, content-length handling, timeout behavior, and connection-state transitions.
+4. SignalR JSON/MessagePack protocol parsing and hub authorization.
+5. MVC/Razor/Components parser and binding boundaries.
+6. Data Protection and caching only where a completely local lab can exercise the invariant.
+
+Deprioritize CI/release candidates that require protected GitHub infrastructure, OAuth/OIDC candidates that require external identity providers, and candidates already classified `REJECTED` unless genuinely new evidence changes their gate analysis. Prefer existing unit tests and fuzzing targets as lead generators for Kestrel and SignalR, then add only isolated audit harnesses under `.security-audit/lab/` when needed.
+
 ## Mandatory deliverables
 
 Produce or update:

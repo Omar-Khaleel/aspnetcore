@@ -39,6 +39,27 @@ When the user supplies only `$repo-audit`, infer and record these defaults:
 
 Ask a question only when a safety-critical ambiguity makes authorized local work impossible. Otherwise choose the conservative assumption, record it, and continue.
 
+## ASP.NET Core repository bootstrap and prioritization override
+
+When the current repository is ASP.NET Core, future bare `$repo-audit` invocations must use this repository's local toolchain before declaring .NET unavailable:
+
+1. From the repository root, check whether `./.dotnet/dotnet` exists and is executable.
+2. If the repository SDK is missing, run `./restore.sh` from the repository root before treating .NET as unavailable.
+3. Run `source ./activate.sh` before .NET build/test commands when the command requires the repository environment or PATH setup.
+4. Prefer `./.dotnet/dotnet` for commands when shell PATH changes are not persistent between tool calls.
+5. Never treat a missing preinstalled system-wide `dotnet` command as a final environment blocker when this repository provides `restore.sh` and `activate.sh`.
+
+For ASP.NET Core validation, prioritize fully local, dynamically testable surfaces over externally dependent hypotheses:
+
+- Kestrel HTTP/1, HTTP/2, and HTTP/3 parsers and state machines.
+- Request smuggling and parser differential behavior.
+- Header, chunked-body, content-length, timeout, and connection-state handling.
+- SignalR JSON/MessagePack protocol parsing and hub authorization.
+- MVC/Razor/Components parser and binding boundaries.
+- Data Protection and caching only where a completely local lab is possible.
+
+Deprioritize CI/release candidates requiring protected GitHub infrastructure, OAuth/OIDC candidates requiring external identity providers, and already classified `REJECTED` candidates unless genuinely new evidence exists. Build and test only the relevant component or project; do not build the entire ASP.NET Core repository unless strictly necessary. For Kestrel and SignalR, use existing unit tests and fuzzing targets first, then add isolated PoC or regression-test harnesses under `.security-audit/lab/`, preserving all commands and outputs under `.security-audit/06-evidence/`. Do not mark the audit `COMPLETE` merely because one hypothesis was rejected; continue until the selected local component has systematic source review, targeted dynamic tests, and fuzzing or structured malformed-input testing.
+
 ## Required sibling skills
 
 Before each phase, read the applicable sibling skill when present:

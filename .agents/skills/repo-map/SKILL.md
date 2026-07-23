@@ -16,6 +16,17 @@ When invoked as `$repo-map` with no additional text, start immediately on the cu
 - Exclude `.agents/skills` and `.security-audit` from the product map.
 - Use local evidence when network access is unavailable.
 
+## ASP.NET Core local toolchain discovery
+
+When mapping this ASP.NET Core repository, derive safe component build/test commands from the repository-local toolchain:
+
+- Check `./.dotnet/dotnet` before relying on a system-wide `dotnet`.
+- If `./.dotnet/dotnet` is absent, run `./restore.sh` from the repository root before declaring .NET unavailable.
+- Use `source ./activate.sh` before .NET commands when repository environment setup is needed.
+- Prefer `./.dotnet/dotnet` when PATH changes will not persist.
+- Record these bootstrap steps and outcomes in the scope/coverage artifacts.
+- Build and test only the relevant component or project; do not build the whole repository unless strictly necessary.
+
 If `.security-audit/` does not exist, initialize it. If scope is incomplete, record conservative assumptions and continue with local source review.
 
 ## Mandatory deliverables
