@@ -1,0 +1,24 @@
+{
+  "state": "VALIDATION_ACTIVE",
+  "repository": "/workspace/aspnetcore",
+  "product_baseline": "d144ac55",
+  "worktree_commit": "d68b893f6dc3415fbe7a551442605c032430b017",
+  "updated_utc": "2026-07-23T20:52:05Z",
+  "completed_artifacts": [
+    "00-scope.md",
+    "01-inventory.json",
+    "02-architecture.md",
+    "03-threat-model.md",
+    "04-attack-surface.md",
+    "05-candidates.json",
+    "07-triage.md",
+    "08-coverage.md",
+    "09-final-summary.md"
+  ],
+  "candidate_counts": {
+    "REPORTABLE": 0,
+    "NEEDS_ENVIRONMENT": 1,
+    "REJECTED": 1
+  },
+  "next_resume": "Continue deep hunt/dynamic validation for auth, SignalR, Kestrel, and CI/release surfaces."
+}

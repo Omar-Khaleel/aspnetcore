@@ -1,0 +1,4 @@
+sed -n '1,180p' src/StaticAssets/src/Infrastructure/StaticAssetsEndpointDataSourceHelper.cs
+sed -n '1,160p' src/StaticAssets/src/StaticAssetsEndpointRouteBuilderExtensions.cs
+sed -n '1,130p' src/Shared/StaticWebAssets/ManifestStaticWebAssetFileProvider.cs
+rg -n "GetFileInfo|Normalize|PathString|StaticAssetDescriptor|ContentRoot|AssetPath|MapStaticAssets" src/StaticAssets/src src/Shared/StaticWebAssets
