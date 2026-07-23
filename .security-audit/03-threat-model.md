@@ -37,3 +37,9 @@
 | H5 | CI scripts that extract archives or execute tools could permit supply-chain authority escalation. | 52 | Requires controlled CI/fork/runner proof and review of protected workflow permissions; environment unavailable. |
 
 No hypothesis was promoted to reportable vulnerability in this run.
+
+## Resumed hypothesis result
+
+| ID | Hypothesis | Result | Strongest rejection |
+| --- | --- | --- | --- |
+| H3 / CAND-003 | Remote authentication callback state/nonce confusion could allow forged or replayed login callbacks. | Rejected in source-trace validation. | OAuth and OIDC callback paths unprotect state, require correlation validation, and OIDC propagates nonce to protocol validators before accepting the sign-in path; no forged/replayed callback impact was reproduced. |

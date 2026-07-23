@@ -19,6 +19,10 @@ Read:
 
 Default to a deep, repository-specific model. Do not use a generic CWE list as the model.
 
+## ASP.NET Core priority model
+
+When modeling this ASP.NET Core repository, rank fully local and dynamically testable boundaries above externally dependent ones. Prioritize Kestrel HTTP/1/2/3 parser and state-machine invariants, request-smuggling/parser-differential invariants, header/chunked-body/content-length/timeout/connection-state handling, SignalR JSON/MessagePack parsing and hub authorization, MVC/Razor/Components parser and binding boundaries, and Data Protection/caching invariants that can be exercised in a completely local lab. Deprioritize protected GitHub CI/release scenarios, OAuth/OIDC scenarios requiring external identity providers, and previously `REJECTED` candidates unless new evidence changes their assumptions.
+
 ## Mandatory deliverables
 
 Produce or update:

@@ -15,21 +15,50 @@
     "attacker_control": "HTTP request path to a configured static asset endpoint; no evidence that a remote attacker controls the manifest path or content root in default runtime.",
     "attacker_privileges": "Unauthenticated remote web client against an app that has called MapStaticAssets.",
     "victim_and_owner": "Application host filesystem and static web root owned by the app/developer.",
-    "prerequisites": ["Application uses static asset endpoints", "Attacker can request paths served by the app"],
+    "prerequisites": [
+      "Application uses static asset endpoints",
+      "Attacker can request paths served by the app"
+    ],
     "security_invariant": "A web client must not be able to select arbitrary files outside the app's configured static asset roots.",
     "suspected_root_cause": "If manifest path or content roots were lower-trust, descriptor AssetPath lookup might reach unintended file providers.",
     "sensitive_sink": "IFileProvider.GetFileInfo and static file response body serving.",
     "boundary": "Remote web client -> application filesystem read authority.",
     "expected_impact": "Unauthorized local file disclosure outside intended static assets.",
-    "validation_plan": ["Trace whether request path influences manifest path", "Trace whether request path influences content root", "Check whether file provider root checks are bypassed"],
-    "negative_controls": ["Developer-controlled manifest path only", "FileProvider lookup remains under configured root"],
-    "downstream_defenses_to_test": ["Manifest generated at build time", "PhysicalFileProvider root semantics", "Static asset descriptor route matching"],
-    "evidence": ["Manual source trace found manifest path is supplied by app/developer and relative paths are resolved below AppContext.BaseDirectory; request path does not select manifest path.", "Manifest file providers are built from manifest content roots rather than direct request path roots."],
-    "failed_gates": ["G1 attacker control", "G3 security boundary violation", "G4 observable impact"],
-    "triage_objections": ["The attacker controls only HTTP request path, not the manifest path/content root authority needed for the hypothesized arbitrary file read."],
-    "triage_rounds": ["Round 1: rejected because the source trace did not show lower-trust control of manifest path/content root or observable file disclosure."],
+    "validation_plan": [
+      "Trace whether request path influences manifest path",
+      "Trace whether request path influences content root",
+      "Check whether file provider root checks are bypassed"
+    ],
+    "negative_controls": [
+      "Developer-controlled manifest path only",
+      "FileProvider lookup remains under configured root"
+    ],
+    "downstream_defenses_to_test": [
+      "Manifest generated at build time",
+      "PhysicalFileProvider root semantics",
+      "Static asset descriptor route matching"
+    ],
+    "evidence": [
+      "Manual source trace found manifest path is supplied by app/developer and relative paths are resolved below AppContext.BaseDirectory; request path does not select manifest path.",
+      "Manifest file providers are built from manifest content roots rather than direct request path roots."
+    ],
+    "failed_gates": [
+      "G1 attacker control",
+      "G3 security boundary violation",
+      "G4 observable impact"
+    ],
+    "triage_objections": [
+      "The attacker controls only HTTP request path, not the manifest path/content root authority needed for the hypothesized arbitrary file read."
+    ],
+    "triage_rounds": [
+      "Round 1: rejected because the source trace did not show lower-trust control of manifest path/content root or observable file disclosure."
+    ],
     "report_revisions": [],
-    "coverage_tags": ["static-assets", "file-provider", "path"],
+    "coverage_tags": [
+      "static-assets",
+      "file-provider",
+      "path"
+    ],
     "confidence": "medium",
     "priority": 72,
     "notes": "Useful hardening review target, but not a reportable vulnerability based on available evidence."
@@ -41,27 +70,138 @@
     "class": "supply-chain",
     "surface": "eng scripts and CI workflows",
     "product_baseline": "d144ac55",
-    "source_locations": ["eng/common/tools.ps1:74", "eng/common/native/CommonLibrary.psm1:377", "eng/helix/content/InstallNode.ps1:67"],
+    "source_locations": [
+      "eng/common/tools.ps1:74",
+      "eng/common/native/CommonLibrary.psm1:377",
+      "eng/helix/content/InstallNode.ps1:67"
+    ],
     "attacker_control": "Potential contributor-controlled repository changes or build inputs in CI; exact protected workflow path not proven.",
     "attacker_privileges": "Malicious contributor or fork PR author.",
     "victim_and_owner": "Repository CI/release secrets, signed artifacts, package publishing authority.",
-    "prerequisites": ["Authorized controlled fork/runner or CI simulation", "Workflow permissions and event context"],
+    "prerequisites": [
+      "Authorized controlled fork/runner or CI simulation",
+      "Workflow permissions and event context"
+    ],
     "security_invariant": "Untrusted contribution code must not execute with secrets, signing, release, or protected repository write authority.",
     "suspected_root_cause": "Archive extraction or script execution may be reachable in a privileged workflow without sufficient trust separation.",
     "sensitive_sink": "Build script execution, extracted tools, CI tokens/secrets/artifacts.",
     "boundary": "Untrusted contributor -> protected CI/release authority.",
     "expected_impact": "Protected workflow command execution or artifact substitution.",
-    "validation_plan": ["Map workflows and token permissions", "Use controlled fork/runner with dummy secrets", "Prove or disprove secret/artifact authority transition"],
-    "negative_controls": ["Same PR without protected event/secrets", "Trusted branch-only workflow"],
-    "downstream_defenses_to_test": ["GitHub event trust model", "workflow permissions", "environment protection", "artifact provenance checks"],
-    "evidence": ["Read-only search found archive extraction and process execution in engineering scripts, but no protected workflow exploit path was locally demonstrated."],
-    "failed_gates": ["G0 scope/program verification", "G2 reachability", "G4 observable impact", "G6 reproducibility"],
-    "triage_objections": ["Without a controlled authorized CI environment and workflow permission proof, this remains a supply-chain review lead rather than a vulnerability."],
+    "validation_plan": [
+      "Map workflows and token permissions",
+      "Use controlled fork/runner with dummy secrets",
+      "Prove or disprove secret/artifact authority transition"
+    ],
+    "negative_controls": [
+      "Same PR without protected event/secrets",
+      "Trusted branch-only workflow"
+    ],
+    "downstream_defenses_to_test": [
+      "GitHub event trust model",
+      "workflow permissions",
+      "environment protection",
+      "artifact provenance checks"
+    ],
+    "evidence": [
+      "Read-only search found archive extraction and process execution in engineering scripts, but no protected workflow exploit path was locally demonstrated."
+    ],
+    "failed_gates": [
+      "G0 scope/program verification",
+      "G2 reachability",
+      "G4 observable impact",
+      "G6 reproducibility"
+    ],
+    "triage_objections": [
+      "Without a controlled authorized CI environment and workflow permission proof, this remains a supply-chain review lead rather than a vulnerability."
+    ],
     "triage_rounds": [],
     "report_revisions": [],
-    "coverage_tags": ["ci", "supply-chain", "eng"],
+    "coverage_tags": [
+      "ci",
+      "supply-chain",
+      "eng"
+    ],
     "confidence": "low",
     "priority": 52,
     "notes": "Carry forward for a dedicated CI/release audit."
+  },
+  {
+    "id": "CAND-003",
+    "title": "Remote authentication callback state/nonce confusion could allow forged or replayed login callbacks",
+    "status": "REJECTED",
+    "class": "auth-csrf/session-binding",
+    "surface": "src/Security/Authentication OAuth and OpenIdConnect handlers",
+    "product_baseline": "d144ac55",
+    "source_locations": [
+      "src/Security/Authentication/OAuth/src/OAuthHandler.cs:68",
+      "src/Security/Authentication/OAuth/src/OAuthHandler.cs:77",
+      "src/Security/Authentication/OAuth/src/OAuthHandler.cs:271",
+      "src/Security/Authentication/Core/src/RemoteAuthenticationHandler.cs:226",
+      "src/Security/Authentication/Core/src/RemoteAuthenticationHandler.cs:249",
+      "src/Security/Authentication/OpenIdConnect/src/OpenIdConnectHandler.cs:700",
+      "src/Security/Authentication/OpenIdConnect/src/OpenIdConnectHandler.cs:728",
+      "src/Security/Authentication/OpenIdConnect/src/OpenIdConnectHandler.cs:782",
+      "src/Security/Authentication/OpenIdConnect/src/OpenIdConnectHandler.cs:800",
+      "src/Security/Authentication/OpenIdConnect/src/OpenIdConnectHandler.cs:1160"
+    ],
+    "attacker_control": "Externally supplied OAuth/OIDC callback query/form parameters and identity-provider token responses in an app using remote authentication.",
+    "attacker_privileges": "Unauthenticated remote web client able to hit configured callback paths; no valid protected state/correlation/nonce is assumed.",
+    "victim_and_owner": "Application sign-in session and ASP.NET Core principal issued by the authentication handler.",
+    "prerequisites": [
+      "Application uses OAuth or OpenID Connect remote authentication",
+      "Attacker can send callback requests to the app"
+    ],
+    "security_invariant": "Remote callback acceptance must be bound to protected state, a matching one-time correlation cookie, and OIDC nonce where required before creating a principal.",
+    "suspected_root_cause": "A sibling or fallback callback path might process tokens before state/correlation/nonce binding.",
+    "sensitive_sink": "AuthenticationTicket/ClaimsPrincipal creation and sign-in by the remote authentication handler.",
+    "boundary": "Unauthenticated callback input -> authenticated ASP.NET Core principal authority.",
+    "expected_impact": "Forged login, login CSRF, or replayed callback leading to an unintended principal.",
+    "validation_plan": [
+      "Trace OAuth and OIDC callback ordering",
+      "Check missing/invalid state handling",
+      "Check correlation cookie generation/validation/deletion",
+      "Check OIDC nonce cookie lookup and protocol validation"
+    ],
+    "negative_controls": [
+      "Missing or invalid state returns invalid/fail/skip before ticket creation",
+      "Missing or mismatched correlation cookie fails",
+      "Missing nonce is passed to protocol validator for rejection when nonce is required"
+    ],
+    "downstream_defenses_to_test": [
+      "StateDataFormat protection",
+      "correlation cookie marker",
+      "OIDC protocol validator",
+      "token validation parameters"
+    ],
+    "evidence": [
+      "OAuth handler unprotects state and rejects null properties before calling ValidateCorrelationId.",
+      "OAuth challenge generation calls GenerateCorrelationId before building the redirect.",
+      "RemoteAuthenticationHandler validates the protected correlation item against a matching request cookie value and deletes the cookie.",
+      "OpenID Connect rejects missing/invalid state before calling ValidateCorrelationId.",
+      "OpenID Connect reads nonce cookies and passes nonce into ValidateAuthenticationResponse/ValidateTokenResponse."
+    ],
+    "failed_gates": [
+      "G4 observable impact",
+      "G6 dynamic reproducibility"
+    ],
+    "triage_objections": [
+      "The source trace shows the expected state, correlation, and nonce defenses; no forged or replayed callback was shown to create a principal.",
+      "Dynamic verification was limited because dotnet and a controlled IdP/token lab were unavailable."
+    ],
+    "triage_rounds": [
+      "Round 1: rejected as source-disproven/no impact demonstrated; keep auth handlers as a high-priority dynamic test surface for a future environment with dotnet and controlled IdP fixtures."
+    ],
+    "report_revisions": [],
+    "coverage_tags": [
+      "authentication",
+      "oauth",
+      "openid-connect",
+      "callback",
+      "state",
+      "nonce"
+    ],
+    "confidence": "medium",
+    "priority": 60,
+    "notes": "Authentication callback handling remains important, but this specific state/nonce confusion hypothesis did not survive evidence gates."
   }
 ]

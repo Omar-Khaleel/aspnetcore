@@ -33,6 +33,20 @@ For each candidate, create:
 
 Use `.security-audit/lab/` or a separate worktree/copy for instrumentation, PoCs, or patch experiments. Preserve the product baseline unchanged.
 
+## ASP.NET Core validation bootstrap and local-first policy
+
+For ASP.NET Core candidates, do not classify the environment as blocked merely because `dotnet` is not preinstalled on PATH:
+
+1. Check `./.dotnet/dotnet` from the repository root.
+2. If it is missing, run `./restore.sh`.
+3. Run `source ./activate.sh` before .NET commands when the repository environment is required.
+4. Prefer `./.dotnet/dotnet` when PATH changes are not persistent.
+5. Record each bootstrap command, output, and failure under the candidate evidence directory before using `NEEDS_ENVIRONMENT`.
+
+Build and test only the relevant component or project. Do not build the entire ASP.NET Core repository unless strictly necessary to validate the candidate. For Kestrel and SignalR, use existing unit tests and fuzzing targets first; add isolated PoC or regression-test harnesses under `.security-audit/lab/`; run positive tests, negative controls, clean reproduction, and impact measurement; and preserve commands plus outputs under `.security-audit/06-evidence/`.
+
+When choosing the next candidate to validate in this repository, prioritize fully local Kestrel parser/state-machine, request-smuggling/parser-differential, malformed header/chunked-body/content-length/timeout/connection-state, SignalR protocol/hub-authorization, MVC/Razor/Components parser/binding, and local Data Protection/cache candidates. Deprioritize protected-GitHub CI/release candidates, external-IdP OAuth/OIDC candidates, and already rejected candidates unless new evidence exists.
+
 ## Validation protocol
 
 For each candidate:
