@@ -15,3 +15,10 @@
 - Final classification: `NEEDS_ENVIRONMENT`.
 
 No candidate reached `IMPACT_PROVEN` or `REPORTABLE`; therefore no vendor-ready vulnerability report was produced.
+
+## CAND-003 — Remote authentication callback state/nonce confusion
+
+- Prover: OAuth and OIDC callback inputs are high-impact because a successful bypass would create an application principal from lower-trust callback data.
+- Breaker: The reviewed source shows the expected state/correlation/nonce order: OAuth unprotects `state` and rejects null properties before `ValidateCorrelationId`; challenge generation calls `GenerateCorrelationId`; the shared remote handler validates the protected correlation value against a matching cookie marker and deletes it; OIDC rejects missing/invalid state before correlation validation and passes nonce into protocol validation.
+- Adjudicator: Reject this concrete hypothesis. The source trace does not show a callback path that creates a ticket without protected state/correlation/nonce binding, and `dotnet` plus a controlled IdP/token lab were unavailable for dynamic tests.
+- Final classification: `REJECTED`.

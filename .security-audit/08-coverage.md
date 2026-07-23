@@ -22,3 +22,11 @@
 ## Resume recommendation
 
 Another `$repo-audit` invocation should resume at deeper systematic hunt/dynamic validation for authentication handlers, SignalR protocol handling, Kestrel parsers, and CI/release workflow boundaries.
+
+## Additional resumed-audit coverage on 2026-07-23
+
+- Authentication callback state/correlation/nonce handling was source-traced for OAuth and OpenID Connect.
+- The OAuth path was checked for protected `state` use, correlation validation, and challenge-time correlation generation.
+- The shared remote authentication path was checked for correlation cookie generation, marker validation, deletion, and rejection behavior.
+- The OpenID Connect path was checked for missing/invalid state rejection, correlation validation, nonce cookie lookup/deletion, and nonce propagation to protocol validators.
+- Candidate `CAND-003` was rejected because no path was shown to create a principal without those binding checks; dynamic TestServer execution remains blocked by missing `dotnet`.
