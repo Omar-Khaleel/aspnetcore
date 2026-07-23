@@ -2,8 +2,8 @@
   "state": "VALIDATION_ACTIVE",
   "repository": "/workspace/aspnetcore",
   "product_baseline": "d144ac55",
-  "worktree_commit": "e61e22a14c0ce545fbe53b223ecd764a996e4328",
-  "updated_utc": "2026-07-23T21:32:00Z",
+  "worktree_commit": "6f64dadce8f8451b49a48f17a7b08450ab80f18c",
+  "updated_utc": "2026-07-23T21:45:00Z",
   "completed_artifacts": [
     "00-scope.md",
     "01-inventory.json",
@@ -18,7 +18,7 @@
   "candidate_counts": {
     "REPORTABLE": 0,
     "NEEDS_ENVIRONMENT": 1,
-    "REJECTED": 3
+    "REJECTED": 4
   },
-  "next_resume": "Continue dynamic validation for Kestrel parser fuzzing/differential tests once repository SDK bootstrap can reach dependencies; continue SignalR, MVC/Razor/Components, DataProtection, and authorized CI/release lab review."
+  "next_resume": "Continue Kestrel parser fuzzing/differential tests and broader SignalR fuzzing once repository SDK bootstrap can reach dependencies; continue MVC/Razor/Components, DataProtection, and authorized CI/release lab review."
 }

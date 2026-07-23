@@ -34,3 +34,7 @@ Another `$repo-audit` invocation should resume at deeper systematic hunt/dynamic
 ## 2026-07-23 Kestrel HTTP/1 TE/CL coverage update
 
 Reviewed `Http1MessageBody`, `HttpRequestHeaders`, and existing Kestrel tests for the specific request-smuggling hypothesis where `Transfer-Encoding` and `Content-Length` ambiguity could alter application-visible request boundaries. Source and test evidence support rejection of that concrete hypothesis: Kestrel rejects non-final chunked transfer coding, suppresses conflicting content length when chunked is selected, and rejects differing duplicate content lengths. Dynamic fuzzing and proxy differential tests remain blocked until repository SDK bootstrap succeeds.
+
+## 2026-07-23 SignalR MessagePack protocol coverage update
+
+Reviewed the default SignalR MessagePack protocol worker and option paths for a concrete binder-bypass/unsafe-deserialization hypothesis. Source review found default `MessagePackSecurity.UntrustedData` settings, binder-provided method parameter metadata, exact argument-count enforcement, binding-failure handling, and existing tests for malformed fields, argument mismatches, partial frames, and deeply nested skipped results. Candidate `CAND-005` was rejected for this concrete hypothesis. Dynamic SignalR fuzzing remains blocked until repository SDK bootstrap can download dependencies.

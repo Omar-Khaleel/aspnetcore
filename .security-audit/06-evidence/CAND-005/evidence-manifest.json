@@ -1,0 +1,22 @@
+[
+  {
+    "file": ".security-audit/06-evidence/CAND-005/commands.log",
+    "sha256": "d8bb60f70bc6ed2ab2307a72aba4cbb324baf885c90f09583adc54e63ad0a076"
+  },
+  {
+    "file": ".security-audit/06-evidence/CAND-005/environment.md",
+    "sha256": "3e72d9015183d454841336f56334a28d375ff6d45354218d097d2d724e1c0de9"
+  },
+  {
+    "file": ".security-audit/06-evidence/CAND-005/hypothesis.md",
+    "sha256": "e72b2fb26a6dba33d0cb75b6c60836277ac37f69e8124778098c6c5da4828540"
+  },
+  {
+    "file": ".security-audit/06-evidence/CAND-005/impact.md",
+    "sha256": "1a150bafdf2c29c568d29c75488d6b80d79817164cce57a1f76b371f5a355ff2"
+  },
+  {
+    "file": ".security-audit/06-evidence/CAND-005/limitations.md",
+    "sha256": "f64d5a4d63bf9cbd894591fc0093d9de5f3996d83180b6c54fcb3b44272cfa77"
+  }
+]

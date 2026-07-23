@@ -1,0 +1,61 @@
+[0;33mwarning: Building of C# project is enabled and has dependencies on NodeJS projects. Building of NodeJS projects is enabled since node is detected on PATH.[0m
+[0;33mwarning: Note that if you are running Source Build, building NodeJS projects will be disabled later on.[0m
+Downloading 'https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh'
+curl: (56) CONNECT tunnel failed, response 403
+Curl failed; dumping some information about dotnet.microsoft.com for later investigation
+40A77914FB7F0000:error:10080002:BIO routines:BIO_lookup_ex:system lib:../crypto/bio/bio_addr.c:738:Temporary failure in name resolution
+connect:errno=11
+Will now retry the same URL with verbose logging.
+Trying to run 'curl https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -sSL --verbose --retry 10 --create-dirs -o /workspace/aspnetcore/.dotnet/dotnet-install.sh' for maximum of 5 attempts.
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,::1'
+* Uses proxy env variable https_proxy == 'http://proxy:8080'
+* Host proxy:8080 was resolved.
+* IPv6: (none)
+* IPv4: 172.30.2.51, 172.30.2.51
+*   Trying 172.30.2.51:8080...
+* Connected to proxy (172.30.2.51) port 8080
+* CONNECT tunnel: HTTP/1.1 negotiated
+* allocate connect buffer
+* Establish HTTP proxy tunnel to builds.dotnet.microsoft.com:443
+> CONNECT builds.dotnet.microsoft.com:443 HTTP/1.1
+> Host: builds.dotnet.microsoft.com:443
+> User-Agent: curl/8.5.0
+> Proxy-Connection: Keep-Alive
+> 
+< HTTP/1.1 403 Forbidden
+< content-length: 9
+< content-type: text/plain
+< date: Thu, 23 Jul 2026 21:36:48 GMT
+< server: envoy
+< connection: close
+< 
+* CONNECT tunnel failed, response 403
+* Closing connection
+curl: (56) CONNECT tunnel failed, response 403
+Failed to execute 'curl https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -sSL --verbose --retry 10 --create-dirs -o /workspace/aspnetcore/.dotnet/dotnet-install.sh'. Waiting 8 seconds before next attempt (2 out of 5).
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,::1'
+* Uses proxy env variable https_proxy == 'http://proxy:8080'
+* Host proxy:8080 was resolved.
+* IPv6: (none)
+* IPv4: 172.30.2.51, 172.30.2.51
+*   Trying 172.30.2.51:8080...
+* Connected to proxy (172.30.2.51) port 8080
+* CONNECT tunnel: HTTP/1.1 negotiated
+* allocate connect buffer
+* Establish HTTP proxy tunnel to builds.dotnet.microsoft.com:443
+> CONNECT builds.dotnet.microsoft.com:443 HTTP/1.1
+> Host: builds.dotnet.microsoft.com:443
+> User-Agent: curl/8.5.0
+> Proxy-Connection: Keep-Alive
+> 
+< HTTP/1.1 403 Forbidden
+< content-length: 9
+< content-type: text/plain
+< date: Thu, 23 Jul 2026 21:36:56 GMT
+< server: envoy
+< connection: close
+< 
+* CONNECT tunnel failed, response 403
+* Closing connection
+curl: (56) CONNECT tunnel failed, response 403
+Failed to execute 'curl https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -sSL --verbose --retry 10 --create-dirs -o /workspace/aspnetcore/.dotnet/dotnet-install.sh'. Waiting 26 seconds before next attempt (3 out of 5).
