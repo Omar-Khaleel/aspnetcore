@@ -1,0 +1,36 @@
+{
+  "candidate_id": "CAND-003",
+  "generated_utc": "2026-07-23T21:06:50Z",
+  "files": [
+    {
+      "path": ".security-audit/06-evidence/CAND-003/commands.log",
+      "sha256": "15abbb8c3f7dc3dac45e654303fd6e2fd9df5a775b6ca1f14425afcf34008a1a",
+      "bytes": 954
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-003/environment.md",
+      "sha256": "fdcfacda21130f521ec2c6e48c2979db74f7bc888e4cea193be2c319a0353b85",
+      "bytes": 593
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-003/hypothesis.md",
+      "sha256": "a0a611e11f84fcb67b8d2c83052c48a2cd2f13d2551a97c7c01f9092a7a294b4",
+      "bytes": 913
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-003/impact.md",
+      "sha256": "57541ae0fbef1401d4adb9f089822b80eb24247d46ffa8098fa826e9d4e2fc91",
+      "bytes": 1090
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-003/limitations.md",
+      "sha256": "37ff59e62462ea1e8185575cb222f082668bc867c0acfb82a6e08865cec306b4",
+      "bytes": 479
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-003/outputs/dotnet-info.txt",
+      "sha256": "1fb9f46eab13995baf1b9efcb2b98f512b5fa265bbc171112952634e8f953205",
+      "bytes": 45
+    }
+  ]
+}

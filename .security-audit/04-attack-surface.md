@@ -17,3 +17,10 @@
 - Read `SECURITY.md` and representative README/build metadata.
 - Targeted search for dangerous APIs and security-relevant terms: process execution, dynamic assembly loading, archive extraction, file providers, path joins, authorization metadata, dangerous options, TODO/security markers.
 - Manual source reads for static asset manifest resolution and manifest-backed file provider behavior.
+
+## Resumed authentication-handler review
+
+| Surface | Attacker-controlled source | Boundary | Sinks/assets | Coverage status |
+| --- | --- | --- | --- | --- |
+| OAuth callback state/correlation | callback `state`, `code`, `error` query parameters | unauthenticated callback request -> application sign-in authority | `AuthenticationTicket`, claims principal, saved tokens | Source-traced; CAND-003 rejected because protected state and correlation cookie validation occur before ticket creation. |
+| OpenID Connect callback state/nonce | callback query/form parameters, authorization code, ID token nonce | unauthenticated callback/token response -> application sign-in authority | validated token, principal, auth properties | Source-traced; CAND-003 rejected because missing/invalid state fails before correlation validation and nonce is passed to protocol validation. |
