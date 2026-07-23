@@ -203,5 +203,77 @@
     "confidence": "medium",
     "priority": 60,
     "notes": "Authentication callback handling remains important, but this specific state/nonce confusion hypothesis did not survive evidence gates."
+  },
+  {
+    "id": "CAND-004",
+    "title": "HTTP/1 Transfer-Encoding and Content-Length parser differential could permit request smuggling",
+    "status": "REJECTED",
+    "class": "request-smuggling/parser-differential",
+    "surface": "src/Servers/Kestrel/Core HTTP/1 request parser and message body selection",
+    "product_baseline": "d144ac55",
+    "source_locations": [
+      "src/Servers/Kestrel/Core/src/Internal/Http/Http1MessageBody.cs:158",
+      "src/Servers/Kestrel/Core/src/Internal/Http/Http1MessageBody.cs:166",
+      "src/Servers/Kestrel/Core/src/Internal/Http/Http1MessageBody.cs:185",
+      "src/Servers/Kestrel/Core/src/Internal/Http/HttpRequestHeaders.cs:94",
+      "src/Servers/Kestrel/Core/test/HttpHeadersTests.cs:176",
+      "src/Servers/Kestrel/Core/test/Http1/Http1ConnectionTests.cs:1044"
+    ],
+    "attacker_control": "Unauthenticated remote client controls HTTP/1 request bytes including Transfer-Encoding and Content-Length headers.",
+    "attacker_privileges": "Network access to a Kestrel HTTP/1 endpoint or a deployment with a proxy in front of Kestrel.",
+    "victim_and_owner": "Application request routing/body framing state behind Kestrel and any front-end proxy.",
+    "prerequisites": [
+      "HTTP/1 request path reaches Kestrel",
+      "Potential parser differential with another HTTP intermediary"
+    ],
+    "security_invariant": "Kestrel must not accept an HTTP/1 request framing interpretation that lets attacker-supplied bytes become a second hidden request or alter the victim request body.",
+    "suspected_root_cause": "Ambiguous final transfer-coding or TE/CL precedence might leave Content-Length active when chunked framing is selected.",
+    "sensitive_sink": "HTTP request boundary/body selection and subsequent application request dispatch.",
+    "boundary": "Unauthenticated network bytes -> application-visible request stream and routing authority.",
+    "expected_impact": "Request smuggling into a victim connection or request-body confusion.",
+    "validation_plan": [
+      "Trace TE/CL handling",
+      "Review existing tests",
+      "Run Kestrel parser tests/fuzzing when SDK is available",
+      "Build local proxy differential harness"
+    ],
+    "negative_controls": [
+      "Non-final chunked Transfer-Encoding is rejected",
+      "Content-Length is cleared when Transfer-Encoding chunked is authoritative",
+      "Conflicting Content-Length values are rejected"
+    ],
+    "downstream_defenses_to_test": [
+      "Final transfer coding check",
+      "Content-Length suppression",
+      "multiple Content-Length rejection",
+      "connection close behavior on rejection"
+    ],
+    "evidence": [
+      "Http1MessageBody rejects Transfer-Encoding whose final coding is not chunked.",
+      "Http1MessageBody moves Content-Length to X-Content-Length and clears headers.ContentLength when chunked is selected.",
+      "HttpRequestHeaders rejects differing duplicate Content-Length values.",
+      "Existing tests cover ambiguous transfer-coding parsing and chunked+Content-Length behavior."
+    ],
+    "failed_gates": [
+      "G4 observable impact",
+      "G6 dynamic reproducibility"
+    ],
+    "triage_objections": [
+      "Source and existing tests show the hypothesized TE/CL ambiguity is intentionally handled; no proxy differential or smuggled request was reproduced."
+    ],
+    "triage_rounds": [
+      "Round 1: rejected as source/test-disproven for this TE/CL framing hypothesis; dynamic fuzzing remains future coverage."
+    ],
+    "report_revisions": [],
+    "coverage_tags": [
+      "kestrel",
+      "http1",
+      "request-smuggling",
+      "transfer-encoding",
+      "content-length"
+    ],
+    "confidence": "medium",
+    "priority": 80,
+    "notes": "High-value surface retained for future fuzzing, but this concrete hypothesis did not survive evidence gates."
   }
 ]
