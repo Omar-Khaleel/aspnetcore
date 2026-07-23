@@ -32,3 +32,13 @@ No candidate reached `IMPACT_PROVEN` or `REPORTABLE`; therefore no vendor-ready 
 **Strongest breaker rejection:** this is a high-value request-smuggling surface, but no parser differential or hidden request was reproduced. The reviewed code appears to enforce the expected invariant for the concrete TE/CL ambiguity. Without a dynamic proxy/Kestrel differential harness, the claim cannot show observable security impact.
 
 **Adjudication:** reject this candidate rather than report it. Preserve it as coverage and resume future Kestrel fuzzing/differential validation when the repository SDK bootstrap is available.
+
+## CAND-005 adversarial triage — SignalR MessagePack binder/deserialization bypass
+
+**Verdict:** `REJECTED` for the reviewed concrete hypothesis.
+
+**Prover evidence:** a remote SignalR client controls MessagePack hub protocol frames before server-side hub dispatch, and successful parser/binder bypass could affect hub invocation authority. Source review found the default protocol options use MessagePack `UntrustedData` security, invocation parsing asks `IInvocationBinder` for target parameter types, `BindArguments` requires exact argument count, and binding/deserialization exceptions are represented as binding-failure messages. Existing tests cover malformed primitive fields, missing/empty target and invocation IDs, argument count/type mismatches, partial-frame non-consumption, and a deeply nested skipped-result case.
+
+**Strongest breaker rejection:** no unauthorized hub invocation, type-confusion effect, or resource-exhaustion impact was reproduced. Custom application-supplied serializer options are explicitly developer-controlled configuration, not remote attacker control. The reviewed code and tests support the expected invariant for the concrete default MessagePack binder-bypass/unsafe-default claim.
+
+**Adjudication:** reject this candidate rather than report it. Preserve SignalR protocol fuzzing as a future dynamic coverage item once SDK bootstrap is available.

@@ -275,5 +275,76 @@
     "confidence": "medium",
     "priority": 80,
     "notes": "High-value surface retained for future fuzzing, but this concrete hypothesis did not survive evidence gates."
+  },
+  {
+    "id": "CAND-005",
+    "title": "SignalR MessagePack binder or unsafe deserialization bypass could create unauthorized hub invocations",
+    "status": "REJECTED",
+    "class": "protocol-parser/binding",
+    "surface": "src/SignalR/common/Protocols.MessagePack",
+    "product_baseline": "d144ac55",
+    "source_locations": [
+      "src/SignalR/common/Protocols.MessagePack/src/Protocol/MessagePackHubProtocol.cs:71",
+      "src/SignalR/common/Protocols.MessagePack/src/Protocol/MessagePackHubProtocolWorker.cs:73",
+      "src/SignalR/common/Protocols.MessagePack/src/Protocol/MessagePackHubProtocolWorker.cs:296",
+      "src/SignalR/common/Protocols.MessagePack/src/MessagePackHubProtocolOptions.cs:17",
+      "src/SignalR/common/SignalR.Common/test/Internal/Protocol/MessagePackHubProtocolTestBase.cs:274"
+    ],
+    "attacker_control": "Remote SignalR client controls framed MessagePack hub protocol bytes before hub method dispatch.",
+    "attacker_privileges": "Network client able to connect to a SignalR endpoint; authentication/authorization depends on the application hub configuration.",
+    "victim_and_owner": "Application hub method dispatch, server deserialization resources, and hub invocation authority.",
+    "prerequisites": [
+      "Application enables MessagePack SignalR protocol",
+      "Attacker can send hub protocol frames"
+    ],
+    "security_invariant": "Client-controlled MessagePack frames must be parsed with untrusted-data settings and must not produce a successful invocation unless binder target metadata and argument count/types match.",
+    "suspected_root_cause": "A parser/binder fallback or custom serializer option default might skip type/count enforcement or unsafe-data limits.",
+    "sensitive_sink": "Hub invocation message creation and MessagePackSerializer.Deserialize for binder-selected types.",
+    "boundary": "Remote client bytes -> server hub invocation/deserialization authority.",
+    "expected_impact": "Unauthorized hub method invocation, type confusion, or parser resource exhaustion beyond configured defenses.",
+    "validation_plan": [
+      "Trace default MessagePack serializer options",
+      "Trace invocation target and argument binding",
+      "Review invalid-payload and nested-data tests",
+      "Run protocol tests/fuzzing when SDK is available"
+    ],
+    "negative_controls": [
+      "Argument count mismatch produces binding failure",
+      "Type mismatch produces binding failure",
+      "Partial data is not consumed",
+      "Default serializer options use UntrustedData"
+    ],
+    "downstream_defenses_to_test": [
+      "MessagePackSecurity.UntrustedData",
+      "IInvocationBinder parameter metadata",
+      "binding failure messages",
+      "SignalR transport maximum message size"
+    ],
+    "evidence": [
+      "Default MessagePack options call WithSecurity(MessagePackSecurity.UntrustedData).",
+      "Invocation parsing obtains parameter types from IInvocationBinder and BindArguments requires exact parameter count before deserializing.",
+      "Deserialization/binding errors are captured as InvocationBindingFailureMessage or StreamBindingFailureMessage rather than successful invocations.",
+      "Existing tests cover invalid headers, missing/empty target/id, argument count/type mismatches, partial data non-consumption, and deeply nested skipped results."
+    ],
+    "failed_gates": [
+      "G4 observable impact",
+      "G6 dynamic reproducibility"
+    ],
+    "triage_objections": [
+      "The source and existing tests show expected parser/binder defenses for the concrete bypass hypothesis; no unauthorized invocation or resource-exhaustion impact was reproduced."
+    ],
+    "triage_rounds": [
+      "Round 1: rejected as source/test-disproven for this concrete MessagePack binder-bypass/unsafe-default hypothesis; dynamic fuzzing remains future coverage."
+    ],
+    "report_revisions": [],
+    "coverage_tags": [
+      "signalr",
+      "messagepack",
+      "protocol-parser",
+      "binding"
+    ],
+    "confidence": "medium",
+    "priority": 70,
+    "notes": "Retain SignalR for future fuzzing once SDK bootstrap succeeds."
   }
 ]

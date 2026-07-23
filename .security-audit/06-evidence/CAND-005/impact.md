@@ -1,0 +1,3 @@
+# Impact assessment
+
+No security impact was demonstrated. Source review showed the default MessagePack protocol uses `MessagePackSecurity.UntrustedData`; target and invocation identifiers are checked for null/empty values; invocation and stream-invocation argument arrays must exactly match the binder-provided parameter count; deserialization failures are converted to binding-failure hub messages rather than successful invocations. Existing tests cover invalid primitive/message shapes, argument count mismatches, type mismatches, partial-data non-consumption, and a deeply nested skipped-result case.

@@ -1,0 +1,8 @@
+# 2026-07-23 resumed repo-audit SignalR MessagePack protocol review
+rg -n "MessagePack|IInvocationBinder|Bind|Deserialize|MaximumReceiveMessageSize|HubInvocation" src/SignalR -g '*.cs' | head -200
+sed -n '60,120p' src/SignalR/common/Protocols.MessagePack/src/Protocol/MessagePackHubProtocol.cs
+sed -n '1,130p' src/SignalR/common/Protocols.MessagePack/src/Protocol/MessagePackHubProtocolWorker.cs
+sed -n '286,320p' src/SignalR/common/Protocols.MessagePack/src/Protocol/MessagePackHubProtocolWorker.cs
+sed -n '1,80p' src/SignalR/common/Protocols.MessagePack/src/MessagePackHubProtocolOptions.cs
+sed -n '250,430p' src/SignalR/common/SignalR.Common/test/Internal/Protocol/MessagePackHubProtocolTestBase.cs
+./restore.sh 2>&1 | tee .security-audit/restore-20260723-rerun.log  # interrupted after repeated proxy 403 CONNECT failures
