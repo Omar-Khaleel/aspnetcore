@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": ".security-audit/06-evidence/CAND-001/commands.log",
+      "sha256": "ede8cbe4ca872b3a3cb6b6fd0b67b49005879539d0108f9a669fcbf439d6c821",
+      "bytes": 405
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-001/environment.md",
+      "sha256": "30497b2be7bf5c23eb7bf0d55143d62065a7bd99c50207220dba7cd262b83636",
+      "bytes": 216
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-001/hypothesis.md",
+      "sha256": "f845e2205093546d1ddcd37c46d1a55f35659ea661e584b6ff688d3cfe4968b5",
+      "bytes": 191
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-001/impact.md",
+      "sha256": "f0c143c1d972bf6f9862f781dc9cc88576b72d4338262a3f4769dcc1e2c0b555",
+      "bytes": 183
+    },
+    {
+      "path": ".security-audit/06-evidence/CAND-001/limitations.md",
+      "sha256": "cc68d4c71b0886870051a378182a74e2745a1df5342c1d2c8e4f511f3a711c53",
+      "bytes": 190
+    }
+  ]
+}
