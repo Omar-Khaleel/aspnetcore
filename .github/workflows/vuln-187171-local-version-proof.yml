@@ -7,12 +7,16 @@ on:
       - security/vuln-187171-outputcache-followup
     paths:
       - 'eng/security-research/VULN-187171/**'
+      - 'src/Middleware/OutputCaching/src/Policies/DefaultPolicy.cs'
+      - 'src/Middleware/OutputCaching/test/OutputCacheMultiIdentityTests.cs'
       - '.github/workflows/vuln-187171-local-version-proof.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'eng/security-research/VULN-187171/**'
+      - 'src/Middleware/OutputCaching/src/Policies/DefaultPolicy.cs'
+      - 'src/Middleware/OutputCaching/test/OutputCacheMultiIdentityTests.cs'
       - '.github/workflows/vuln-187171-local-version-proof.yml'
 
 permissions:
@@ -52,3 +56,21 @@ jobs:
             eng/security-research/VULN-187171/IncompleteFixProof/evidence-*/SUMMARY.txt
           if-no-files-found: warn
           retention-days: 14
+
+  source-regression-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build and run focused OutputCache test project
+        run: |
+          chmod +x eng/build.sh
+          ./eng/build.sh \
+            --ci \
+            --projects src/Middleware/OutputCaching/test/Microsoft.AspNetCore.OutputCaching.Tests.csproj \
+            -test \
+            /p:TestFilter=FullyQualifiedName~OutputCacheMultiIdentityTests
