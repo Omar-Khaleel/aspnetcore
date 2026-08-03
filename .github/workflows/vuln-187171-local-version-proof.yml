@@ -1,0 +1,39 @@
+name: VULN-187171 local version proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - security/vuln-187171-outputcache-followup
+    paths:
+      - 'eng/security-research/VULN-187171/**'
+      - '.github/workflows/vuln-187171-local-version-proof.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compare-runtime-patches:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+
+      - name: Run self-contained local Docker proof
+        working-directory: eng/security-research/VULN-187171/LocalVersionProof
+        run: |
+          chmod +x run-version-comparison.sh
+          ./run-version-comparison.sh
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vuln-187171-version-differential-evidence
+          path: |
+            eng/security-research/VULN-187171/LocalVersionProof/evidence-*.tar.gz
+            eng/security-research/VULN-187171/LocalVersionProof/evidence-*.tar.gz.sha256
+            eng/security-research/VULN-187171/LocalVersionProof/evidence-*/SUMMARY.txt
+          if-no-files-found: warn
+          retention-days: 14
