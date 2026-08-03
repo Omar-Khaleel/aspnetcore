@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
@@ -50,7 +51,7 @@ internal sealed class DefaultPolicy : IOutputCachePolicy
             return ValueTask.CompletedTask;
         }
 
-        if (context.HttpContext.User?.Identity?.IsAuthenticated == true)
+        if (context.HttpContext.User?.Identities.Any(static identity => identity.IsAuthenticated) == true)
         {
             context.AllowCacheStorage = false;
             return ValueTask.CompletedTask;
@@ -78,8 +79,9 @@ internal sealed class DefaultPolicy : IOutputCachePolicy
             return false;
         }
 
-        // Verify existence of authorization headers
-        if (!StringValues.IsNullOrEmpty(request.Headers.Authorization) || request.HttpContext.User?.Identity?.IsAuthenticated == true)
+        // Verify existence of authorization headers or any authenticated identity.
+        if (!StringValues.IsNullOrEmpty(request.Headers.Authorization) ||
+            request.HttpContext.User?.Identities.Any(static identity => identity.IsAuthenticated) == true)
         {
             return false;
         }
