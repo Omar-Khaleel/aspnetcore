@@ -8,6 +8,12 @@ on:
     paths:
       - 'eng/security-research/VULN-187171/**'
       - '.github/workflows/vuln-187171-local-version-proof.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'eng/security-research/VULN-187171/**'
+      - '.github/workflows/vuln-187171-local-version-proof.yml'
 
 permissions:
   contents: read
