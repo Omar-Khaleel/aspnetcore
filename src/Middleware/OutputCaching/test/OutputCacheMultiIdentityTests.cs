@@ -48,7 +48,7 @@ public class OutputCacheMultiIdentityTests
                                     new[] { unauthenticatedIdentity, authenticatedIdentity });
 
                                 Assert.False(context.User.Identity?.IsAuthenticated);
-                                Assert.True(context.User.Identities.Any(identity => identity.IsAuthenticated));
+                                Assert.Contains(context.User.Identities, identity => identity.IsAuthenticated);
                             }
 
                             return next(context);
