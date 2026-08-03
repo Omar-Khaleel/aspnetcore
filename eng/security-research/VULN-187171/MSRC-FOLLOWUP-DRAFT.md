@@ -154,15 +154,28 @@ This check must apply before:
 
 I included a regression test named `AuthenticatedSecondaryIdentityIsNotCached`, which constructs an unauthenticated primary identity and authenticated secondary identity, sends Alice and Bob requests to the same cache key, and requires two endpoint executions with no `Age` response.
 
-## Evidence
+## Evidence and validation
 
-The controlled GitHub Actions validation completed successfully:
+The final controlled GitHub Actions validation completed successfully:
 
-- Run ID: `30860866819`
-- Job: `compare-runtime-patches`
+- Run ID: `30861448104`
+- Runtime proof job: `compare-runtime-patches` — succeeded
+- Source regression job: `source-regression-test` — succeeded
 - Artifact: `vuln-187171-complete-local-evidence`
-- Artifact ID: `8874287055`
-- Artifact SHA-256: `cc910bd842e9aa7e155ea956eb0dab14fb8c0b14c3772c6fffb4707937de6188`
+- Artifact ID: `8874488862`
+- Artifact size: `116739` bytes
+- Artifact SHA-256: `0f51c262f5e8aecd8497b122fca4db4911715e257a8ea73f577fb90fbc66298a`
+
+Runtime validation confirmed both the 9.0.16/9.0.17 differential and the 9.0.17 multi-identity bypass.
+
+The source validation used the ASP.NET Core repository build system, restored and compiled the affected OutputCaching source and test projects, and executed the focused regression test. Final result:
+
+```text
+Tests succeeded: Microsoft.AspNetCore.OutputCaching.Tests.dll
+Build succeeded.
+0 Warning(s)
+0 Error(s)
+```
 
 The artifact contains both evidence archives, raw headers and bodies, exact runtime listings, logs, control results, and SHA-256 manifests.
 
