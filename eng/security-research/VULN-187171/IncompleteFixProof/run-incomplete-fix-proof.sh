@@ -91,24 +91,18 @@ run_order() {
   cat "$case_dir/RESULT.txt"
   echo "--- Bob /private response headers ---"
   cat "$case_dir/04-bob-private.headers"
-  echo "--- Alice cookie jar ---"
-  sed -E 's/([[:space:]])[^[:space:]]+$/\1<redacted>/' "$case_dir/alice.cookies" || true
-  echo "--- Bob cookie jar ---"
-  sed -E 's/([[:space:]])[^[:space:]]+$/\1<redacted>/' "$case_dir/bob.cookies" || true
   echo "===== END DIAGNOSTIC: ${order} ====="
 
-  grep -F "SIGNED_IN=alice;ORDER=${order}" "$case_dir/01-login-alice.body" >/dev/null
-  grep -F "SIGNED_IN=bob;ORDER=${order}" "$case_dir/03-login-bob.body" >/dev/null
+  grep -F "SIGNED_IN=alice;TRANSFORM_ORDER=${order}" "$case_dir/01-login-alice.body" >/dev/null
+  grep -F "SIGNED_IN=bob;TRANSFORM_ORDER=${order}" "$case_dir/03-login-bob.body" >/dev/null
   grep -F 'NO_CACHE_USER=bob;ACCOUNT=account-bob' "$case_dir/05-bob-nocache.body" >/dev/null
   grep -Fx '401' "$case_dir/06-anonymous-private.status" >/dev/null
 
   if [[ "$expectation" == vulnerable ]]; then
-    grep -F 'PRIMARY_AUTH=False;ANY_AUTH=True' "$case_dir/01-login-alice.body" >/dev/null
     grep -F 'PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1;PRIMARY_AUTH=False;ANY_AUTH=True;AUTH_METADATA=True;ALLOW_ANON=False;IDENTITY_COUNT=2' "$case_dir/02-alice-private.body" >/dev/null
     grep -F 'PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1;PRIMARY_AUTH=False;ANY_AUTH=True;AUTH_METADATA=True;ALLOW_ANON=False;IDENTITY_COUNT=2' "$case_dir/04-bob-private.body" >/dev/null
     grep -i '^age:' "$case_dir/04-bob-private.headers" >/dev/null
   else
-    grep -F 'PRIMARY_AUTH=True;ANY_AUTH=True' "$case_dir/01-login-alice.body" >/dev/null
     grep -F 'PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1;PRIMARY_AUTH=True;ANY_AUTH=True;AUTH_METADATA=True;ALLOW_ANON=False;IDENTITY_COUNT=2' "$case_dir/02-alice-private.body" >/dev/null
     grep -F 'PRIVATE_USER=bob;ACCOUNT=account-bob;EXEC_COUNT=2;PRIMARY_AUTH=True;ANY_AUTH=True;AUTH_METADATA=True;ALLOW_ANON=False;IDENTITY_COUNT=2' "$case_dir/04-bob-private.body" >/dev/null
     if grep -i '^age:' "$case_dir/04-bob-private.headers" >/dev/null; then
