@@ -73,6 +73,30 @@ run_order() {
   docker logs "$container_name" > "$case_dir/container.log" 2>&1 || true
   docker rm -f "$container_name" >/dev/null
 
+  {
+    echo "RUNTIME_VERSION=${RUNTIME_VERSION}"
+    echo "IDENTITY_ORDER=${order}"
+    echo "EXPECTATION=${expectation}"
+    echo "ALICE_LOGIN=$(cat "$case_dir/01-login-alice.body")"
+    echo "ALICE_PRIVATE=$(cat "$case_dir/02-alice-private.body")"
+    echo "BOB_LOGIN=$(cat "$case_dir/03-login-bob.body")"
+    echo "BOB_PRIVATE=$(cat "$case_dir/04-bob-private.body")"
+    echo "BOB_AGE_HEADER=$(grep -i '^age:' "$case_dir/04-bob-private.headers" | tr -d '\r' || true)"
+    echo "BOB_NO_CACHE=$(cat "$case_dir/05-bob-nocache.body")"
+    echo "ANONYMOUS_STATUS=$(cat "$case_dir/06-anonymous-private.status")"
+    echo "ANONYMOUS_BODY=$(cat "$case_dir/06-anonymous-private.body")"
+  } > "$case_dir/RESULT.txt"
+
+  echo "===== DIAGNOSTIC: ${order} ====="
+  cat "$case_dir/RESULT.txt"
+  echo "--- Bob /private response headers ---"
+  cat "$case_dir/04-bob-private.headers"
+  echo "--- Alice cookie jar ---"
+  sed -E 's/([[:space:]])[^[:space:]]+$/\1<redacted>/' "$case_dir/alice.cookies" || true
+  echo "--- Bob cookie jar ---"
+  sed -E 's/([[:space:]])[^[:space:]]+$/\1<redacted>/' "$case_dir/bob.cookies" || true
+  echo "===== END DIAGNOSTIC: ${order} ====="
+
   grep -F "SIGNED_IN=alice;ORDER=${order}" "$case_dir/01-login-alice.body" >/dev/null
   grep -F "SIGNED_IN=bob;ORDER=${order}" "$case_dir/03-login-bob.body" >/dev/null
   grep -F 'NO_CACHE_USER=bob;ACCOUNT=account-bob' "$case_dir/05-bob-nocache.body" >/dev/null
@@ -92,19 +116,6 @@ run_order() {
       exit 1
     fi
   fi
-
-  {
-    echo "RUNTIME_VERSION=${RUNTIME_VERSION}"
-    echo "IDENTITY_ORDER=${order}"
-    echo "EXPECTATION=${expectation}"
-    echo "ALICE_LOGIN=$(cat "$case_dir/01-login-alice.body")"
-    echo "ALICE_PRIVATE=$(cat "$case_dir/02-alice-private.body")"
-    echo "BOB_LOGIN=$(cat "$case_dir/03-login-bob.body")"
-    echo "BOB_PRIVATE=$(cat "$case_dir/04-bob-private.body")"
-    echo "BOB_AGE_HEADER=$(grep -i '^age:' "$case_dir/04-bob-private.headers" | tr -d '\r' || true)"
-    echo "BOB_NO_CACHE=$(cat "$case_dir/05-bob-nocache.body")"
-    echo "ANONYMOUS_STATUS=$(cat "$case_dir/06-anonymous-private.status")"
-  } > "$case_dir/RESULT.txt"
 }
 
 run_order 'unauth-first' '51917' 'outputcache-multi-unauth-first' vulnerable
