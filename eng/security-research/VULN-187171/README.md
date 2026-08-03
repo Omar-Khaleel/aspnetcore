@@ -2,103 +2,171 @@
 
 ## Outcome
 
-This folder contains a no-cloud, no-subscription, version-differential proof for the issue originally submitted to MSRC as `VULN-187171` on 2026-05-10.
+**REPORTABLE MATERIAL NEW EVIDENCE — original fix correlation plus a validated incomplete-fix bypass.**
 
-The original report demonstrated that ASP.NET Core OutputCache could store a response generated for an authenticated cookie principal when `UseOutputCache()` ran before authentication, and then replay that protected response to another authenticated user or an anonymous request.
+This folder contains fully local, no-cloud evidence for the issue submitted to MSRC as `VULN-187171` on 2026-05-10.
 
-Microsoft later merged an upstream change that describes the same scenario and adds the missing post-handler authentication check.
+The evidence now establishes two independent facts:
 
-## Timeline and exact source delta
+1. Microsoft later changed ASP.NET Core for the exact cross-user replay scenario described in the original report.
+2. The shipped fix checks only `ClaimsPrincipal.Identity`, while ASP.NET Core Authorization treats a principal as authenticated when **any** identity in `ClaimsPrincipal.Identities` is authenticated. This mismatch leaves ASP.NET Core 9.0.17 vulnerable even when Authentication and Authorization run before OutputCache.
 
-### Reported affected version
+No Azure resource, Redis service, subscription, tenant, managed identity, paid product, or external account is required.
 
-The submitted proof tested ASP.NET Core `9.0.15`.
+## Original issue and Microsoft fix correlation
 
-In tag `v9.0.15`, `DefaultPolicy.ServeResponseAsync` rejects storage for:
+The original proof tested ASP.NET Core 9.0.15 and demonstrated that OutputCache could store an authenticated Alice response and replay it to Bob or an anonymous request when `UseOutputCache()` appeared before Authentication/Authorization.
 
-- responses that emit `Set-Cookie`;
-- responses whose status is not 200.
+The vulnerable `DefaultPolicy` implementation remained unchanged in 9.0.16.
 
-It does **not** reject storage when downstream authentication has populated `HttpContext.User`.
+On 2026-06-09, after the report was submitted, Microsoft merged:
 
-The same vulnerable implementation remains in tag `v9.0.16`.
+- Commit: `1a638c9050d54510c9e48fea351636d736956196`
+- PR: `#67110`
+- Title: `Avoid caching responses for authenticated users`
 
-### Microsoft fix
+The upstream description states that when authentication middleware appears after OutputCache and authentication does not use the Authorization header, a page intended for one user can be cached and served to anonymous or other users.
 
-Upstream commit:
-
-`1a638c9050d54510c9e48fea351636d736956196`
-
-Commit title:
-
-`Merged PR 60873: Avoid caching responses for authenticated users (#67110)`
-
-Commit date:
-
-`2026-06-09`
-
-The commit message states that when authentication middleware appears after OutputCache and authentication is not represented by the Authorization header, an application can cache a page intended for one user and serve it to anonymous or other users.
-
-The source fix adds this check to `DefaultPolicy.ServeResponseAsync`:
+The fix shipped in 9.0.17 and added checks equivalent to:
 
 ```csharp
-if (context.HttpContext.User?.Identity?.IsAuthenticated == true)
-{
-    context.AllowCacheStorage = false;
-    return ValueTask.CompletedTask;
-}
+context.HttpContext.User?.Identity?.IsAuthenticated == true
 ```
 
-The change is present in tag `v9.0.17` and in the current main branch.
+before cache lookup and response storage.
 
-## Why this closes the primary triage objection
+## Validated version-differential proof
 
-The expected objection to the original report was that the vulnerable middleware ordering was merely application misconfiguration.
-
-The later Microsoft change materially weakens that objection:
-
-1. Microsoft changed framework behavior rather than relying only on documentation.
-2. The commit description identifies the same order-dependent cross-user/anonymous disclosure scenario.
-3. The regression test explicitly exercises authentication both before and after OutputCache.
-4. The framework now checks authentication again after downstream middleware executes, proving that the prior request-time check was insufficient.
-5. The fix shipped between `9.0.16` and `9.0.17` after the original submission date.
-
-The report should therefore be updated as a fix-correlation submission, not resubmitted as a duplicate.
-
-## Local version-differential proof
-
-`LocalVersionProof` contains one identical application executed under two official ASP.NET Core runtime images:
+`LocalVersionProof` runs one identical Cookie Authentication application under official runtime images:
 
 - `mcr.microsoft.com/dotnet/aspnet:9.0.16`
 - `mcr.microsoft.com/dotnet/aspnet:9.0.17`
 
-The application uses:
+The application uses only:
 
 - standard Cookie Authentication;
-- `builder.Services.AddOutputCache()` with no custom policy;
-- `UseOutputCache()` before Authentication/Authorization;
+- `AddOutputCache()` without a custom policy;
 - a protected `.RequireAuthorization().CacheOutput()` endpoint;
-- separate Alice and Bob cookies;
-- no public cache headers;
-- no Azure, Redis service, subscription, tenant, or paid product.
+- independent Alice and Bob cookie jars;
+- a protected non-cached control endpoint.
 
-Expected result:
+Validated result:
 
 ### 9.0.16
 
-- Alice requests `/private` and generates a private response.
-- Bob requests the same endpoint using Bob's independent cookie.
-- Bob receives Alice's cached body and the response includes `Age`.
-- An anonymous request also receives Alice's cached body.
-- `/private-nocache` still resolves Bob correctly, proving the identities and authorization system are functioning.
+```text
+ALICE_RESPONSE=PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1
+BOB_RESPONSE=PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1
+BOB_AGE_HEADER=Age: 0
+ANONYMOUS_STATUS=200
+ANONYMOUS_RESPONSE=PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1
+NO_CACHE_BOB_RESPONSE=NO_CACHE_USER=bob;ACCOUNT=account-bob
+```
 
 ### 9.0.17
 
-- Alice's authenticated response is not stored.
-- Bob executes the handler as Bob and receives Bob's account data.
-- The anonymous request receives 401.
+```text
+ALICE_RESPONSE=PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1
+BOB_RESPONSE=PRIVATE_USER=bob;ACCOUNT=account-bob;EXEC_COUNT=2
+BOB_AGE_HEADER=
+ANONYMOUS_STATUS=401
+NO_CACHE_BOB_RESPONSE=NO_CACHE_USER=bob;ACCOUNT=account-bob
+```
 
-Run:
+This proves the exact vulnerable-to-fixed transition without Redis or a distributed environment.
+
+## Incomplete-fix bypass on 9.0.17
+
+### Security invariant mismatch
+
+ASP.NET Core Authorization's `DenyAnonymousAuthorizationRequirement` determines that a user is authenticated when:
+
+```csharp
+user.Identities.Any(identity => identity.IsAuthenticated)
+```
+
+OutputCache 9.0.17 instead checks only:
+
+```csharp
+user.Identity?.IsAuthenticated
+```
+
+`ClaimsPrincipal.Identity` returns the first identity. A valid principal can therefore contain:
+
+1. an unauthenticated first identity; and
+2. an authenticated second identity.
+
+Authorization accepts that principal because an authenticated identity exists. OutputCache treats the same principal as unauthenticated because the first identity is not authenticated.
+
+### Realistic construction
+
+`IncompleteFixProof` uses standard Cookie Authentication and the documented `IClaimsTransformation` extension point. Authentication creates a normal authenticated Cookie principal. The claims transformation prepends an unauthenticated identity, producing the exact multi-identity principal that the framework supports.
+
+The middleware order is the recommended order:
+
+```csharp
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseOutputCache();
+```
+
+The protected endpoint is:
+
+```csharp
+.RequireAuthorization()
+.CacheOutput();
+```
+
+### Validated vulnerable case
+
+Under official ASP.NET Core 9.0.17, with the unauthenticated identity first:
+
+```text
+ALICE_PRIVATE=PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1;PRIMARY_AUTH=False;ANY_AUTH=True;AUTH_METADATA=True;ALLOW_ANON=False;IDENTITY_COUNT=2
+BOB_PRIVATE=PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1;PRIMARY_AUTH=False;ANY_AUTH=True;AUTH_METADATA=True;ALLOW_ANON=False;IDENTITY_COUNT=2
+BOB_AGE_HEADER=Age: 0
+BOB_NO_CACHE=NO_CACHE_USER=bob;ACCOUNT=account-bob;PRIMARY_AUTH=False;ANY_AUTH=True
+ANONYMOUS_STATUS=401
+```
+
+Important controls:
+
+- Authorization succeeded for Alice and Bob because `ANY_AUTH=True`.
+- Endpoint metadata shows `AUTH_METADATA=True` and `ALLOW_ANON=False`.
+- Bob's non-cached protected endpoint correctly returned Bob.
+- Bob's cached protected endpoint returned Alice with `Age: 0` and did not execute again.
+- Anonymous access remained 401, proving the bypass is cross-user authenticated disclosure rather than an unprotected endpoint.
+
+### Identity-order control
+
+With the authenticated identity first, under the same runtime and middleware configuration:
+
+```text
+ALICE_PRIVATE=PRIVATE_USER=alice;ACCOUNT=account-alice;EXEC_COUNT=1;PRIMARY_AUTH=True;ANY_AUTH=True
+BOB_PRIVATE=PRIVATE_USER=bob;ACCOUNT=account-bob;EXEC_COUNT=2;PRIMARY_AUTH=True;ANY_AUTH=True
+BOB_AGE_HEADER=
+```
+
+Only identity order changes the security result. This directly isolates the incomplete `User.Identity` check as the root cause.
+
+## Reference remediation
+
+The research branch changes both OutputCache authentication decisions to:
+
+```csharp
+context.HttpContext.User?.Identities.Any(static identity => identity.IsAuthenticated) == true
+```
+
+The check is applied before:
+
+- cache lookup; and
+- response storage.
+
+A regression test, `AuthenticatedSecondaryIdentityIsNotCached`, creates an unauthenticated primary identity and authenticated secondary identity, sends Alice and Bob requests to the same cache key, and requires two endpoint executions with no `Age` response.
+
+## Reproduction
+
+Version comparison:
 
 ```bash
 cd eng/security-research/VULN-187171/LocalVersionProof
@@ -106,26 +174,35 @@ chmod +x run-version-comparison.sh
 ./run-version-comparison.sh
 ```
 
-Requirements:
+Incomplete-fix bypass:
 
-- Docker
-- curl
-- Bash
+```bash
+cd eng/security-research/VULN-187171/IncompleteFixProof
+chmod +x run-incomplete-fix-proof.sh
+./run-incomplete-fix-proof.sh
+```
 
-The script records exact installed runtime versions, raw headers and bodies, container logs, assertions, SHA-256 checksums, and a compressed evidence archive.
+Both scripts generate:
 
-## Remaining limitation
-
-The `9.0.17` fix prevents storage of newly generated authenticated responses. It does not make arbitrary middleware ordering universally safe: a cache entry created for an anonymous endpoint can still be served before later authentication middleware executes. Microsoft's added negative test documents this remaining ordering rule.
-
-That limitation does not negate the reported issue. The original claim is narrower: authenticated private output could be stored and replayed cross-user. The upstream change directly fixes that claim.
+- raw request and response headers;
+- response bodies;
+- exact runtime listings;
+- container logs;
+- control results;
+- SHA-256 checksums;
+- compressed evidence archives.
 
 ## Submission strategy
 
-Do not create a new duplicate report. Add the following to the existing `VULN-187171` submission:
+Do not submit the old report unchanged and do not describe this only as middleware misordering.
 
-- original submission timestamp;
-- upstream commit and PR identifiers;
-- vulnerable/fixed source comparison;
-- completed local version-differential evidence archive;
-- request that MSRC correlate the fix with the report and reassess eligibility.
+Reply to the existing `VULN-187171` case with:
+
+1. the post-submission Microsoft fix correlation;
+2. the 9.0.16 versus 9.0.17 differential evidence;
+3. the 9.0.17 multi-identity bypass using recommended middleware ordering;
+4. the Authorization-versus-OutputCache source mismatch;
+5. the reference fix and regression test;
+6. a request for reassessment, fix correlation, and bounty eligibility.
+
+If MSRC explicitly instructs the researcher to open a separate case for the incomplete fix, use the same evidence but clearly cross-reference `VULN-187171` and PR `#67110`.
