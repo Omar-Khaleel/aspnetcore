@@ -21,25 +21,34 @@ permissions:
 jobs:
   compare-runtime-patches:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout research branch
         uses: actions/checkout@v4
 
-      - name: Run self-contained local Docker proof
+      - name: Run 9.0.16 versus 9.0.17 proof
         working-directory: eng/security-research/VULN-187171/LocalVersionProof
         run: |
           chmod +x run-version-comparison.sh
           ./run-version-comparison.sh
 
+      - name: Run 9.0.17 incomplete-fix proof with recommended ordering
+        working-directory: eng/security-research/VULN-187171/IncompleteFixProof
+        run: |
+          chmod +x run-incomplete-fix-proof.sh
+          ./run-incomplete-fix-proof.sh
+
       - name: Upload sanitized evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vuln-187171-version-differential-evidence
+          name: vuln-187171-complete-local-evidence
           path: |
             eng/security-research/VULN-187171/LocalVersionProof/evidence-*.tar.gz
             eng/security-research/VULN-187171/LocalVersionProof/evidence-*.tar.gz.sha256
             eng/security-research/VULN-187171/LocalVersionProof/evidence-*/SUMMARY.txt
+            eng/security-research/VULN-187171/IncompleteFixProof/evidence-*.tar.gz
+            eng/security-research/VULN-187171/IncompleteFixProof/evidence-*.tar.gz.sha256
+            eng/security-research/VULN-187171/IncompleteFixProof/evidence-*/SUMMARY.txt
           if-no-files-found: warn
           retention-days: 14
