@@ -3,6 +3,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 
+var identityOrder = Environment.GetEnvironmentVariable("IDENTITY_ORDER") ?? "unauth-first";
+
+if (identityOrder is not ("unauth-first" or "auth-first"))
+{
+    throw new InvalidOperationException("IDENTITY_ORDER must be unauth-first or auth-first.");
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
@@ -24,17 +31,13 @@ builder.Services
         };
     });
 
+builder.Services.AddSingleton<IClaimsTransformation>(
+    new IdentityOrderClaimsTransformation(identityOrder));
 builder.Services.AddAuthorization();
 builder.Services.AddOutputCache();
 
 var app = builder.Build();
 var privateExecutionCount = 0;
-var identityOrder = Environment.GetEnvironmentVariable("IDENTITY_ORDER") ?? "unauth-first";
-
-if (identityOrder is not ("unauth-first" or "auth-first"))
-{
-    throw new InvalidOperationException("IDENTITY_ORDER must be unauth-first or auth-first.");
-}
 
 app.UseRouting();
 
@@ -59,19 +62,10 @@ app.MapGet("/login/{user}", async (HttpContext context, string user) =>
         },
         CookieAuthenticationDefaults.AuthenticationScheme);
 
-    var unauthenticatedIdentity = new ClaimsIdentity(
-        new[] { new Claim("proof_identity", "unauthenticated-primary-candidate") });
-
-    var principal = identityOrder == "unauth-first"
-        ? new ClaimsPrincipal(new[] { unauthenticatedIdentity, authenticatedIdentity })
-        : new ClaimsPrincipal(new[] { authenticatedIdentity, unauthenticatedIdentity });
-
+    var principal = new ClaimsPrincipal(authenticatedIdentity);
     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-    return Results.Text(
-        $"SIGNED_IN={user};ORDER={identityOrder};" +
-        $"PRIMARY_AUTH={principal.Identity?.IsAuthenticated};" +
-        $"ANY_AUTH={principal.Identities.Any(identity => identity.IsAuthenticated)}");
+    return Results.Text($"SIGNED_IN={user};TRANSFORM_ORDER={identityOrder}");
 }).AllowAnonymous();
 
 app.MapGet("/private", (HttpContext context) =>
@@ -117,3 +111,28 @@ app.MapGet("/health", () => Results.Text($"ok;IDENTITY_ORDER={identityOrder}"))
     .AllowAnonymous();
 
 app.Run();
+
+sealed class IdentityOrderClaimsTransformation(string identityOrder) : IClaimsTransformation
+{
+    public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+    {
+        if (!principal.Identities.Any(identity => identity.IsAuthenticated) ||
+            principal.HasClaim("output_cache_proof", "transformed"))
+        {
+            return Task.FromResult(principal);
+        }
+
+        var unauthenticatedIdentity = new ClaimsIdentity(
+            new[]
+            {
+                new Claim("output_cache_proof", "transformed"),
+                new Claim("proof_identity", "unauthenticated"),
+            });
+
+        var identities = identityOrder == "unauth-first"
+            ? new[] { unauthenticatedIdentity }.Concat(principal.Identities)
+            : principal.Identities.Concat(new[] { unauthenticatedIdentity });
+
+        return Task.FromResult(new ClaimsPrincipal(identities));
+    }
+}
