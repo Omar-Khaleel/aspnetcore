@@ -71,6 +71,6 @@ jobs:
           chmod +x eng/build.sh
           ./eng/build.sh \
             --ci \
-            --projects src/Middleware/OutputCaching/test/Microsoft.AspNetCore.OutputCaching.Tests.csproj \
+            --projects "$GITHUB_WORKSPACE/src/Middleware/OutputCaching/test/Microsoft.AspNetCore.OutputCaching.Tests.csproj" \
             -test \
             /p:TestFilter=FullyQualifiedName~OutputCacheMultiIdentityTests
