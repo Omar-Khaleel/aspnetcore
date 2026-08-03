@@ -41,11 +41,15 @@ run_case() {
 
   mkdir -p "$case_dir"
 
+  docker run --rm "mcr.microsoft.com/dotnet/aspnet:${version}" \
+    dotnet --list-runtimes > "$case_dir/runtime-list.txt"
+
+  grep -F "Microsoft.AspNetCore.App ${version}" "$case_dir/runtime-list.txt" >/dev/null
+
   docker run -d --rm \
     --name "$container_name" \
     -p "127.0.0.1:${port}:8080" \
     -e ASPNETCORE_URLS=http://+:8080 \
-    -e DOTNET_ROLL_FORWARD=Disable \
     -v "$PUBLISH_DIR:/app:ro" \
     -w /app \
     "mcr.microsoft.com/dotnet/aspnet:${version}" \
@@ -119,6 +123,7 @@ run_case() {
   {
     echo "VERSION=$version"
     echo "EXPECTATION=$expectation"
+    echo "RUNTIMES=$(tr '\n' ';' < "$case_dir/runtime-list.txt")"
     echo "ALICE_RESPONSE=$(cat "$case_dir/02-alice-private.body")"
     echo "BOB_RESPONSE=$(cat "$case_dir/04-bob-private.body")"
     echo "BOB_AGE_HEADER=$(grep -i '^age:' "$case_dir/04-bob-private.headers" | tr -d '\r' || true)"
